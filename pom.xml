@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.rahulsinghai</groupId>
+  <artifactId>sonatype-ossrh-maven-central-parent-pom</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>${project.artifactId}</name>
+  <description>A parent pom to ease deployment to Maven Central</description>
+  <url>https://github.com/rahulsinghai/sonatype-ossrh-maven-central-parent-pom</url>
+  <inceptionYear>2019</inceptionYear>
+
+  <organization>
+    <name>Rahul Singhai</name>
+    <url>https://www.cse.iitb.ac.in/~rahuls_05</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/rahulsinghai/sonatype-ossrh-maven-central-parent-pom/issues</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <id>rahulsinghai</id>
+      <name>Rahul Singhai</name>
+      <email>singrahu@gmail.com</email>
+      <url>http://www.github.com/rahulsinghai</url>
+      <timezone>Europe/London</timezone>
+      <roles>
+        <role>project owner</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/rahulsinghai/sonatype-ossrh-maven-central-parent-pom.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/rahulsinghai/sonatype-ossrh-maven-central-parent-pom.git</developerConnection>
+    <url>https://github.com/rahulsinghai/sonatype-ossrh-maven-central-parent-pom/tree/master</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+    <maven.deploy.plugin.version>3.0.0-M1</maven.deploy.plugin.version>
+    <maven.dependency.plugin.version>3.1.1</maven.dependency.plugin.version>
+    <maven.enforcer.plugin.version>3.0.0-M2</maven.enforcer.plugin.version>
+    <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
+    <maven.git.code.format.plugin.version>1.24</maven.git.code.format.plugin.version>
+    <maven.jacoco.plugin.version>0.8.4</maven.jacoco.plugin.version>
+    <maven.javadoc.plugin.version>3.1.0</maven.javadoc.plugin.version>
+    <maven.nexus.staging.plugin.version>1.6.8</maven.nexus.staging.plugin.version>
+    <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+    <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
+    <maven.source.plugin.version>3.1.0</maven.source.plugin.version>
+    <maven.surefire.plugin.version>3.0.0-M3</maven.surefire.plugin.version>
+  </properties>
+
+  <dependencies>
+    <!-- logging -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+    <downloadUrl>https://oss.sonatype.org/content/groups/public/io/github/rahulsinghai/sonatype-ossrh-maven-central-parent-pom/</downloadUrl>
+  </distributionManagement>
+
+  <!--
+    The plugin configuration for maven-gpg-plugin is wrapped inside a profile.
+    Usually when you build SNAPSHOT version, you don't want to sign the artifacts, because it's
+    unnecessary and time-consuming.
+    Artifact signing is only necessary when it's time to release project.
+    So, we wrap the plugin configuration with a profile, which will only be activated on project
+    releasing.
+
+    This profile will be activated when the value of maven property performRelease is true.
+    When you use maven-release-plugin and run mvn release:perform, the property value will be
+    set to true.
+  -->
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven.source.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven.gpg.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>${maven.release.plugin.version}</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>release-sign-artifacts</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>${maven.nexus.staging.plugin.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          <!--<skipStagingRepositoryClose>true</skipStagingRepositoryClose>-->
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven.enforcer.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.5.4,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
