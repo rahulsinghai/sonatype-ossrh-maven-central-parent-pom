@@ -220,6 +220,20 @@ The latter part of the Release process is Performing the Release; this will:
     mvn release:perform -Darguments='-Dgpg.keyname=<keyname> -Dgpg.passphrase=**********'
     ```
 
+-   Publishing release in Github:
+
+    Next thing to do is to upload the JAR file against the tag created by Maven release plugin above in Github.
+    
+    -   Open your project in Github, and click on **Releases** link.
+    
+    -   Click on **Tags** tab.
+    
+    -   Against the tag created by maven release plugin, click on the **...** > **Create release**
+    
+    -   Add the changelog in the description section.
+    
+    -   Upload the JAR file created for the tag and click on the **Publish release** button.
+
 -   The Final Stretch
 
     The last thing to do now is to use the Sonatype web interface to release the artifacts:
@@ -241,11 +255,11 @@ The latter part of the Release process is Performing the Release; this will:
         -   After closing the repository, you’ll need to hit the refresh button next to the "close" button in order for the "release" button to become activated.
         -   It may take a minute for the system to allow releasing so be patient.
 
-    -   After a couple minutes of waiting, check <https://search.maven.org/search?q=g:io.github.rahulsinghai> for your released artifacts to be available on Maven Central.
-
-    -   I found that it takes even longer for them to be available on [search.maven.org](http://search.maven.org/), 
-        but as soon as they show up in the [repository](https://oss.sonatype.org/content/groups/public/), 
-        you and others can access the artifacts by adding a dependency to the pom.xml file in a Maven project.
+    -   After a couple minutes of waiting, check [The Central Repository](https://search.maven.org/search?q=g:io.github.rahulsinghai) or [Maven Repository](https://mvnrepository.com/artifact/io.github.rahulsinghai/) for your released artifacts to be available on Maven Central.
+    
+    -   It might take longer for them to be available on [search.maven.org](http://search.maven.org/), 
+        but as soon as they show up in the [repository](https://oss.sonatype.org/content/groups/public/io/github/rahulsinghai/), 
+        one can access the artifacts by adding a dependency to the pom.xml file in a Maven project.
 
 ## Encrypting environment variables in travis.yml:
 
