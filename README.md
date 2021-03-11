@@ -4,7 +4,9 @@ Parent `pom.xml` to ease deployment to Maven Central via Sonatype Nexus.
 
 ## Getting started
 
-Add this parent to your `pom.xml`:
+Add dependencies and plugins from the `pom.xml` of this project.
+
+Once this project is available in Maven repo, you can simply add this parent to your `pom.xml`:
 
 ```xml
 <parent>
@@ -14,37 +16,6 @@ Add this parent to your `pom.xml`:
 </parent>
 ```
 
-## Releasing
-
-Once you have your `settings.xml` sorted and your gpg keys as per <http://central.sonatype.org/pages/apache-maven.html>, you can release in one command line to Maven Central:
-
-```bash
-mvn release:prepare && mvn release:perform
-```
-
-You will be prompted for versions.
-
-My preference is to use this bash function in `.bashrc`:
-
-```bash
-function release() {
-  RELEASE_VERSION=$1
-  GPG_PASSPHRASE=$2
-  mvn --batch-mode release:prepare \
-    -Dtag=$RELEASE_VERSION \
-    -DreleaseVersion=$RELEASE_VERSION \
-    -DdevelopmentVersion=$RELEASE_VERSION.1 \
-    -DautoVersionSubmodules=true \
-    -Darguments=-Dgpg.passphrase=$GPG_PASSPHRASE && \
-  mvn --batch-mode release:perform \
-    -Darguments=-Dgpg.passphrase=$GPG_PASSPHRASE
-}
-```
-
-which is called like this:
-
-    release 1.0.0 <GPG_PASSPHRASE>
-
 ## [Deploying on OSS/Maven](https://central.sonatype.org/pages/ossrh-guide.html)
 
 -   [Create your JIRA account](https://issues.sonatype.org/secure/Signup!default.jspa)
@@ -53,7 +24,7 @@ which is called like this:
 
 -   Modify project `pom.xml` with the [requirements](https://central.sonatype.org/pages/requirements.html)
 
--   Generate GPG keys (detailed below) and sign your artifacts to be uploaded.
+-   Generate GPG keys (detailed below) to sign your artifacts to be uploaded.
 
 -   Modify Maven settings.xml with details of OSS credentials. Details [here](https://central.sonatype.org/pages/apache-maven.html).
 
@@ -61,31 +32,41 @@ which is called like this:
 
 ## [Working with PGP Signatures](https://central.sonatype.org/pages/working-with-pgp-signatures.html)
 
-**NOTE**: If you are working on Windows, then add a new environment variable `GNUPGHOME` and set it to `C:\Users\<username>\.gnupg`
+**NOTE**: Prefer to do this exercise on Linux.
 
 -   Download and install [Windows installer](https://www.gnupg.org/download/) (you can go with Simple installer for the current GnuPG).
 
--   Open Windows command prompt and verify installation:
+-   If you are working on Windows, then add a new environment variable `GNUPGHOME` and set it to `C:\Users\<username>\.gnupg`
+
+-   If it is Linux, then add `export GNUPGHOME=/home/<username>/.gnupg` in `~/.bashrc`
+    
+-   Open Console and verify installation:
 
     ```bash
+    echo $GNUPGHOME
     gpg --version
     ```
 
--   Create a file `C:\Users\<username>\start-gpg.sh` with following line:
+-   Create a file `C:\Users\<username>\.gnupg\start-gpg.sh` or `/home/<username>/.gnupg/start-gpg.sh` with following line:
 
     ```bash
-    gpg --homedir=/c/Users/<username>/AppData/Roaming/GnuPG "$@"
+    gpg --homedir=/c/Users/<username>/.gnupg/GnuPG "$@"
+    # Or for Linux:
+    gpg --homedir=/home/<username>/.gnupg/GnuPG "$@"
     ```
 
 -   Add git config for gpg to use `start-gpg.sh` as command:
 
     ```bash
-    git config --global gpg.program "C:/Users/<username>/start-gpg.sh"
+    git config --global gpg.program "C:/Users/<username>/.gnupg/start-gpg.sh"
+    # Or for Linux:
+    git config --global gpg.program "/home/<username>/.gnupg/start-gpg.sh"
     ```
 
 -   Generate GPG key pair:
 
     ```bash
+    # Preferred
     gpg --full-generate-key
     # OR
     gpg --gen-keygpg
@@ -101,14 +82,20 @@ which is called like this:
     gpg --list-secret-keys
     ```
 
--   Printing keys. Here `keyname` is the long HEX string that you get from `list-keys` command above.
+-   Printing keys. Here `keyname` is the last 16 HEX characters of key that you get from `list-keys` command above.
 
         gpg --armor --export <keyname>
 
 -   Distribute public key:
 
-        gpg --keyserver hkp://pool.sks-keyservers.net --send-keys <keyname>
-        gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys <keyname>
+        export GPG_KEY=***************
+        export GPG_PASSPHRASE=**************
+
+        gpg --keyserver hkp://pool.sks-keyservers.net --send-keys $GPG_KEY
+        gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys $GPG_KEY
+        # OR
+        gpg --keyserver hkp://keyserver.ubuntu.com --send-keys $GPG_KEY
+        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys $GPG_KEY
 
 -   Sign files using the private key:
 
@@ -165,21 +152,21 @@ You have 2 options:
 
 2.  Otherwise, you can use **maven-release-plugin**.
 
-## maven-release-plugin
+### maven-release-plugin
 
 Let’s break apart the release process into small and focused steps.
 We are performing a Release when the current version of the project is a SNAPSHOT version – say 1.0.0-SNAPSHOT.
 
 **Tip!** Leave the `-SNAPSHOT` in your `pom.xml`. The **release** plugin removes it and increments to the next snapshot version for you automatically. It also tags the commit for you too.
 
-### release:clean
+#### release:clean
 
 Cleaning a Release will:
 
 -   delete the release descriptor (release.properties)
 -   delete any backup POM files
 
-### release:prepare
+#### release:prepare
 
 Next part of the Release process is Preparing the Release; this will:
 
@@ -191,7 +178,7 @@ Next part of the Release process is Preparing the Release; this will:
 -   increase the version of the project in the pom – in our example – 1.0.1-SNAPSHOT
 -   commit and push the changes
 
-### release:perform
+#### release:perform
 
 The latter part of the Release process is Performing the Release; this will:
 
@@ -199,16 +186,19 @@ The latter part of the Release process is Performing the Release; this will:
 -   build and deploy released code
 -   This second step of the process relies on the output of the Prepare step – the `release.properties` file.
 
-### Steps
+#### Steps
 
 -   First Do a Dry Run
 
     **Note:** replace "sonatype-ossrh-maven-central-parent-pom" with your own artifactId, and replace 1.0.0 with your current version.
 
     ```bash
+    export RELEASE_VERSION=0.2.0
+    export DEV_VERSION=0.2.1
+
     mvn clean
     mvn release:clean
-    mvn --batch-mode -Dtag=sonatype-ossrh-maven-central-parent-pom-1.0.0 -DreleaseVersion=1.0.0 -DdevelopmentVersion=1.0.1-SNAPSHOT -DdryRun=true release:prepare
+    mvn --batch-mode release:prepare -Dtag=sonatype-ossrh-maven-central-parent-pom-v"$RELEASE_VERSION" -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion="$DEV_VERSION"-SNAPSHOT -DdryRun=true
     mvn release:rollback
     ```
 
@@ -216,8 +206,8 @@ The latter part of the Release process is Performing the Release; this will:
 
     ```bash
     mvn release:clean
-    mvn --batch-mode -Dtag=v1.0.0 -DreleaseVersion=1.0.0 -DdevelopmentVersion=1.0.1-SNAPSHOT release:prepare
-    mvn release:perform -Darguments='-Dgpg.keyname=<keyname> -Dgpg.passphrase=**********'
+    mvn --batch-mode release:prepare -Dtag=sonatype-ossrh-maven-central-parent-pom-v"$RELEASE_VERSION" -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion="$DEV_VERSION"-SNAPSHOT -DautoVersionSubmodules=true "-Darguments=-Dgpg.keyname=$GPG_KEY -Dgpg.passphrase=$GPG_PASSPHRASE"
+    mvn release:perform "-Darguments=-Dgpg.keyname=$GPG_KEY -Dgpg.passphrase=$GPG_PASSPHRASE"
     ```
 
 -   Publishing release in Github:
@@ -260,6 +250,37 @@ The latter part of the Release process is Performing the Release; this will:
     -   It might take longer for them to be available on [search.maven.org](http://search.maven.org/), 
         but as soon as they show up in the [repository](https://oss.sonatype.org/content/groups/public/io/github/rahulsinghai/), 
         one can access the artifacts by adding a dependency to the pom.xml file in a Maven project.
+
+#### Releasing
+
+Once you have your `settings.xml` sorted, and your gpg keys as per <http://central.sonatype.org/pages/apache-maven.html>, you can release in one command line to Maven Central:
+
+```bash
+mvn release:prepare && mvn release:perform
+```
+
+You will be prompted for versions.
+
+My preference is to use this bash function in `.bashrc`:
+
+```bash
+function release() {
+  RELEASE_VERSION=$1
+  GPG_PASSPHRASE=$2
+  mvn --batch-mode release:prepare \
+    -Dtag=$RELEASE_VERSION \
+    -DreleaseVersion=$RELEASE_VERSION \
+    -DdevelopmentVersion=$RELEASE_VERSION.1 \
+    -DautoVersionSubmodules=true \
+    -Darguments=-Dgpg.passphrase=$GPG_PASSPHRASE && \
+  mvn --batch-mode release:perform \
+    -Darguments=-Dgpg.passphrase=$GPG_PASSPHRASE
+}
+```
+
+which is called like this:
+
+    release 1.0.0 <GPG_PASSPHRASE>
 
 ## Encrypting environment variables in travis.yml:
 
