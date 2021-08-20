@@ -85,14 +85,13 @@ Once this project is available in Maven repo, you can simply add this parent to 
 
         gpg --armor --export <keyname>
 
--   Distribute public key:
+-   Add this key to your Github/Bitbucket/Gitlab, where you will be sending your signed commits: <https://github.com/settings/keys>
 
-        export GPG_KEY=***************
+-   Distribute public key <https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key>:
+
+        export GPG_KEY=<16 HEX chars key ID>
         export GPG_PASSPHRASE=**************
 
-        gpg --keyserver hkp://pool.sks-keyservers.net --send-keys $GPG_KEY
-        gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys $GPG_KEY
-        # OR
         gpg --keyserver hkp://keyserver.ubuntu.com --send-keys $GPG_KEY
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys $GPG_KEY
 
