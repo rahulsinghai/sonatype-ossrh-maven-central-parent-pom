@@ -42,40 +42,50 @@ Once this project is available in Maven repo, you can simply add this parent to 
     
 -   Open Console and verify installation:
 
-        echo $GNUPGHOME
-        gpg --version
+    ```shell
+    echo $GNUPGHOME
+    gpg --version
+    ```
 
 -   Create a file `C:\Users\<username>\.gnupg\start-gpg.sh` or `/home/<username>/.gnupg/start-gpg.sh` with following line:
 
-        gpg --homedir=/c/Users/<username>/.gnupg/GnuPG "$@"
-        # Or for Linux:
-        gpg --homedir=/home/<username>/.gnupg/GnuPG "$@"
+    ```shell
+    gpg --homedir=/c/Users/<username>/.gnupg/GnuPG "$@"
+    # Or for Linux:
+    gpg --homedir=/home/<username>/.gnupg/GnuPG "$@"
+    ```
 
 -   Add git config for gpg to use `start-gpg.sh` as command:
 
-        git config --global gpg.program "C:/Users/<username>/.gnupg/start-gpg.sh"
-        # Or for Linux:
-        git config --global gpg.program "/home/<username>/.gnupg/start-gpg.sh"
+    ```shell
+    git config --global gpg.program "C:/Users/<username>/.gnupg/start-gpg.sh"
+    # Or for Linux:
+    git config --global gpg.program "/home/<username>/.gnupg/start-gpg.sh"
+    ```
 
 -   Generate GPG key pair:
 
-        # Preferred
-        gpg --full-generate-key
-        # OR
-        gpg --gen-keygpg
+    ```shell
+    # Preferred
+    gpg --full-generate-key
+    # OR
+    gpg --gen-keygpg
+    ```
 
 -   List keys:
 
-        gpg --list-keys
-        # OR
-        gpg --homedir=/c/Users/<username>/.gnupg --list-keys
-        
-        gpg --list-secret-keys --keyid-format=long
-            /Users/<username>/.gnupg/secring.gpg
-            ------------------------------------
-            sec   4096R/3FF5C34371567BD2 2021-08-10 [expires: 2021-09-10]
-            uid                          username
-            ssb   4096R/4FF317FD4BA89E7A 2021-08-10
+    ```shell
+    gpg --list-keys
+    # OR
+    gpg --homedir=/c/Users/<username>/.gnupg --list-keys
+
+    gpg --list-secret-keys --keyid-format=long
+        /Users/<username>/.gnupg/secring.gpg
+        ------------------------------------
+        sec   4096R/3FF5C34371567BD2 2021-08-10 [expires: 2021-09-10]
+        uid                          username
+        ssb   4096R/4FF317FD4BA89E7A 2021-08-10
+    ```
 
 -   You might want to set your default GPG signing key in Git. For this, paste the text below, substituting in the GPG key ID you'd like to use. In this example, the GPG key ID is 3FF5C34371567BD2:
 
@@ -86,10 +96,9 @@ Once this project is available in Maven repo, you can simply add this parent to 
         gpg --armor --export <keyname>
 
 -   Add this key to your Github/Bitbucket/Gitlab, where you will be sending your signed commits: <https://github.com/settings/keys>
-
 -   Distribute public key <https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key>:
 
-        export GPG_KEY=<16 HEX chars key ID>
+        export GPG_KEY=<last 16 HEX characters of key that you get from `list-keys` command above>
         export GPG_PASSPHRASE=**************
 
         gpg --keyserver hkp://keyserver.ubuntu.com --send-keys $GPG_KEY
@@ -97,8 +106,10 @@ Once this project is available in Maven repo, you can simply add this parent to 
 
 -   Sign files using the private key:
 
-        gpg -ab temp.jar
-        gpg --verify temp.java.asc
+    ```shell
+    gpg -ab temp.jar
+    gpg --verify temp.java.asc
+    ```
 
 -   Dealing with expired keys:
 
@@ -116,19 +127,25 @@ Once this project is available in Maven repo, you can simply add this parent to 
 
     -   Move the .gnupg directory: If the target computer does not have gnupg setup yet, or you do not mind replacing the existing keys and settings, then just copying over the key rings is the quickest way to make the move. One just needs to copy over the entire `~/.gnupg` directory, which contains all of your keys and key rings.
 
-            tar -cvzf gnupg_backup_yyyymmdd.tgz /c/Users/<username>/.gnupg
+        ```shell
+        tar -cvzf gnupg_backup_yyyymmdd.tgz /c/Users/<username>/.gnupg
+        ```
 
     -   Individually export/import Public and Private Keys:
 
         To export all of your public php keys and save them to a file, run the command:
 
-            gpg --export > gpg_public_keys.pgp
-            gpg --export-secret-keys > gpg_private_keys.pgp
+        ```shell
+        gpg --export > gpg_public_keys.pgp
+        gpg --export-secret-keys > gpg_private_keys.pgp
+        ```
 
         To import on the target computer, run the following command.
 
-            gpg --import < gpg_public_keys.pgp
-            gpg --import < gpg_private_keys.pgp
+        ```shell
+        gpg --import < gpg_public_keys.pgp
+        gpg --import < gpg_private_keys.pgp
+        ```
 
 ## The Release Process
 
